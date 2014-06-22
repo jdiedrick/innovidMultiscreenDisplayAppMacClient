@@ -9,8 +9,8 @@ void ofApp::setup(){
     
     receiver.setup( PORT );
     
-    player.loadMovie("movies/tv.mov");
-    player.play();
+    //player.loadMovie("movies/tv.mov");
+    //player.play();
     
     //set count
     count = 0;
@@ -45,6 +45,8 @@ void ofApp::update(){
     
     player.update();
     
+    if (!debug) CGDisplayHideCursor(NULL);
+
     
     while( receiver.hasWaitingMessages() ){
         // get the next message
@@ -73,6 +75,7 @@ void ofApp::update(){
 void ofApp::draw(){
     player.draw(0, 0, 1920, 1080);
     if(debug){
+        CGDisplayShowCursor(NULL);
        // drawDebug();
     }
     
@@ -114,7 +117,7 @@ void ofApp::setupOSC(){
 //--------------------------------------------------------------
 void ofApp::setupVideo(){
     //load movie and start playing
-    player.loadMovie("movies/macbook.mov");
+    player.loadMovie("movies/tv.mov");
     player.play();
     player.setLoopState(OF_LOOP_NORMAL);
     
@@ -209,7 +212,9 @@ void ofApp::updateDDL(){
     //ddl->addToggle("iphone.mov");
     //update our dropdown box with the videos
     for (int i=0; i<response["videos"].size(); i++){
-        ddl->addToggle(response["videos"][i]["filename"].asString());
+        if (response["videos"][i]["tag"].asString() == "Mini") {
+            ddl->addToggle(response["videos"][i]["filename"].asString());
+        }
     }
 }
 
@@ -320,33 +325,21 @@ void ofApp::downloadVideos(){
     
     for (int i=0; i<response["videos"].size(); i++){
         
-        ofFile video;
-        string video_url = response["videos"][i]["link"].asString();
-        string video_filename = response["videos"][i]["filename"].asString();
-        string video_final_path = ofToDataPath(video_filename);
-        
-        /*
-         indicator = [[UIActivityIndicatorView alloc]initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleWhiteLarge];
-         indicator.frame = CGRectMake(0.0, 0.0, 40.0, 40.0);
-         CGPoint p;
-         p = ofxiPhoneGetGLView().center;
-         indicator.center = p;
-         [ofxiPhoneGetGLView() addSubview:indicator];
-         [indicator bringSubviewToFront:ofxiPhoneGetGLView()];
-         */
-        
-        if (!video.doesFileExist(video_final_path)) {
-            //[indicator startAnimating];
-            drawLoading = true;
-            numVideosToGet++;
-            fileloader.saveAsync(video_url, video_final_path);
-            cout << "downloading video number: " << i  << " url: " << video_url << " final path: " << video_final_path << " num vids to get " << numVideosToGet << endl;
-            cout << "draw loading? : " << drawLoading << endl;
+        if (response["videos"][i]["tag"].asString() == "Mini") {
+            ofFile video;
+            string video_url = response["videos"][i]["link"].asString();
+            string video_filename = response["videos"][i]["filename"].asString();
+            string video_final_path = ofToDataPath(video_filename);
             
-            
-            
+            if (!video.doesFileExist(video_final_path)) {
+                //[indicator startAnimating];
+                drawLoading = true;
+                numVideosToGet++;
+                fileloader.saveAsync(video_url, video_final_path);
+                cout << "downloading video number: " << i  << " url: " << video_url << " final path: " << video_final_path << " num vids to get " << numVideosToGet << endl;
+                cout << "draw loading? : " << drawLoading << endl;
+            }
         }
-        
     }
     
 }
